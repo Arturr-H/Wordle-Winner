@@ -61,6 +61,8 @@ fn main() {
     /*- The "wordle" words -*/
     let words:Vec<String> = read_file(&"/Users/artur/Desktop/valid-wordle-words.txt");
 
+
+
     /*- Ask the user for yellow chars -*/
     println!("Enter the yellow chars:");
     let mut yellow_input:String = String::new();
@@ -69,6 +71,7 @@ fn main() {
         .expect("Failed to read input!");
 
     yellow_input = yellow_input.trim().to_string();
+
 
     /*- Ask the user for green chars -*/
     println!("Enter the green chars - leave 0 for blank:");
@@ -88,8 +91,18 @@ fn main() {
         })
         .collect();
 
+    /*- Ask the user for gray chars -*/
+    println!("Enter the gray chars:");
+    let mut gray_input:String = String::new();
+    stdin()
+        .read_line(&mut gray_input)
+        .expect("Failed to read input!");
+
+    gray_input = gray_input.trim().to_string();
+
     /*- The characters that are valid -*/
     let letters_yellow:Vec<String> = split(yellow_input);
+    let letters_gray:Vec<String> = split(gray_input);
     let letters_green:Vec<GLT> = green_input_vec;
 
     /*- Iterate over every word -*/
@@ -109,8 +122,19 @@ fn main() {
                 break;
             }
         }if contains_all_letters {
+
+            let mut gray_match:bool = false;
+
+            /*- Check if it doesn't match any gray ones -*/
+            for gray in &letters_gray {
+                if word_vec.contains(gray) {
+                    gray_match = true;
+                    break;
+                };
+            }
+            
             /*- If it does, add it to the possible words -*/
-            possible.push(word);
+            if !gray_match { possible.push(word) };
         }else{ continue };
     }
 
