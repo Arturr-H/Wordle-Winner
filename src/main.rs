@@ -52,6 +52,19 @@ enum GLT<'tpe> { /*- GLT = Green letter type -*/
     Str(&'tpe str)
 }
 
+/*- Make a vec of GLT:S -*/
+#[allow(non_snake_case)]
+fn make_GLT(inp:&String) -> Vec<GLT<>> {
+    return inp.trim().split("").filter(|&x| !x.is_empty())
+    .map(|s| {
+        if s.parse::<u8>().is_ok() {
+            GLT::Num(s.parse::<u8>().unwrap())
+        } else {
+            GLT::Str(s)
+        }
+    }).collect();
+}
+
 fn main() {
 
     /*- Possible words that will be outputted at the end -*/
@@ -62,16 +75,28 @@ fn main() {
     let words:Vec<String> = read_file(&"/Users/artur/Desktop/valid-wordle-words.txt");
 
 
+    /*- All the yellow words, col 1 - X -*/
+    let mut letters_yellow:Vec<Vec<String>> = Vec::new();
 
-    /*- Ask the user for yellow chars -*/
-    println!("Enter the yellow chars:");
-    let mut yellow_input:String = String::new();
-    stdin()
-        .read_line(&mut yellow_input)
-        .expect("Failed to read input!");
+    /*- Loop through the columns and ask for input -*/
+    for i in 0..5 {
+        println!("Enter the yellow bricks in column {}", i+1);
 
-    yellow_input = yellow_input.trim().to_string();
+        /*- Saves to this String -*/
+        let mut input:String = String::new();
+        stdin()
+            .read_line(&mut input)
+            .expect("Failed to read input!");
 
+        /*- Add it to "column" <i> -*/
+        letters_yellow.push(split(
+            input
+                .trim()
+                .to_string()
+        ));
+    }
+
+    println!("{:?}", letters_yellow);
 
     /*- Ask the user for green chars -*/
     println!("Enter the green chars - leave 0 for blank:");
@@ -81,18 +106,10 @@ fn main() {
         .expect("Failed to read input!");
 
     /*- Split the input into a vector of GLT:s (either str or u8)  -*/
-    let green_input_vec:Vec<GLT> = green_input.trim().split("").filter(|&x| !x.is_empty())
-        .map(|s| {
-            if s.parse::<u8>().is_ok() {
-                GLT::Num(s.parse::<u8>().unwrap())
-            } else {
-                GLT::Str(s)
-            }
-        })
-        .collect();
+    let green_input_vec:Vec<GLT> = make_GLT(&green_input);
 
     /*- Ask the user for gray chars -*/
-    println!("Enter the gray chars:");
+    println!("Enter the gray chars (No letter can be same as a yellow):");
     let mut gray_input:String = String::new();
     stdin()
         .read_line(&mut gray_input)
@@ -101,7 +118,6 @@ fn main() {
     gray_input = gray_input.trim().to_string();
 
     /*- The characters that are valid -*/
-    let letters_yellow:Vec<String> = split(yellow_input);
     let letters_gray:Vec<String> = split(gray_input);
     let letters_green:Vec<GLT> = green_input_vec;
 
@@ -116,10 +132,22 @@ fn main() {
         let mut contains_all_letters:bool<> = true;
 
         /*- Check if the word contains all letters of the input -*/
-        for letter in &letters_yellow {
-            if !word_vec.contains(&letter) {
-                contains_all_letters = false;
-                break;
+        for (column_index, letter_list) in letters_yellow.iter().enumerate() {
+
+            /*- Iterate over all chars -*/
+            for letter in letter_list {
+                
+                if !word_vec.contains(letter) {
+                    contains_all_letters = false;
+                    break;
+                }else{
+                    /*- Check if all letters are not in the same spot as the
+                        yellow ones, because yellow means right but wrong spot -*/
+                    if &word_vec[column_index] == letter {
+                        contains_all_letters = false;
+                        break;
+                    };
+                }
             }
         }if contains_all_letters {
 
@@ -132,7 +160,7 @@ fn main() {
                     break;
                 };
             }
-            
+
             /*- If it does, add it to the possible words -*/
             if !gray_match { possible.push(word) };
         }else{ continue };
@@ -146,7 +174,7 @@ fn main() {
     for i in 0..possible.len() {
 
         /*- Loop through all confirmed letters -*/
-        let mut word_is_possible:bool = false;
+        let mut word_is_possible:bool = true;
 
         /*- Loop through the words chars and extract the index alongside it -*/
         for (i, letter) in split(possible[i].to_string()).iter().enumerate() {
