@@ -71,8 +71,22 @@ fn main() {
     let mut possible:Vec<&str> = vec![];
     let mut final_words:Vec<&str> = vec![];
 
+    /*- Check if user wants to change dir(runtime) -*/
+    println!("DIR ( N/<path> ):");
+
+    let mut dir_input:String = String::new();
+    stdin()
+        .read_line(&mut dir_input)
+        .expect("Failed to read input!");
+        
     /*- The "wordle" words -*/
-    let words:Vec<String> = read_file(&"/Users/artur/Desktop/valid-wordle-words.txt");
+    let words:Vec<String>;
+    
+    if dir_input.trim() == "N" || dir_input.trim() == "n" {
+        words = read_file(&"/Users/artur/Desktop/valid-wordle-words.txt");
+    }else{
+        words = read_file(&dir_input.trim().replace("'", ""));
+    }
 
 
     /*- All the yellow words, col 1 - X -*/
@@ -125,7 +139,7 @@ fn main() {
     for word in &words {
 
         /*- All wordle words are always 5 letters long -*/
-        if word.len() != 5 { return };
+        if word.len() != 5 { continue };
 
         /*- Split the word into an array and loop through every character -*/
         let word_vec:Vec<String> = split(word.to_string());
